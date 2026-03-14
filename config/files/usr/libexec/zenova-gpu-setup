@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+# ═══════════════════════════════════════════════════════════════
+#  Zenova OS — GPU Setup Helper
+#  Detects GPU vendor and applies optimal settings
+#  Called by the welcome wizard and can be run manually
+# ═══════════════════════════════════════════════════════════════
+set -euo pipefail
+
+detect_gpu() {
+    if lspci 2>/dev/null | grep -qi "nvidia"; then
+        echo "nvidia"
+    elif lspci 2>/dev/null | grep -qi "amd\|radeon"; then
+        echo "amd"
+    elif lspci 2>/dev/null | grep -qi "intel"; then
+        echo "intel"
+    else
+        echo "unknown"
+    fi
+}
+
+get_gpu_name() {
+    lspci 2>/dev/null | grep -iE "vga|3d|display" | head -1 | sed 's/.*: //' || echo "Unknown GPU"
+}
+
+setup_nvidia() {
+    echo "[Zenova GPU] Setting up NVIDIA..."
+    
+    # Verify NVIDIA driver is loaded
+    if ! lsmod | grep -q "nvidia"; then
+        echo "[Zenova GPU] Warning: NVIDIA kernel module not loaded."
+        echo "[Zenova GPU] This is normal on first boot — reboot may be required."
+    fi
+    
+    # Configure environment for NVIDIA
+    mkdir -p "$HOME/.config/environment.d"
+    cat > "$HOME/.config/environment.d/zenova-nvidia.conf" << 'EOF'
+# Zenova OS — NVIDIA Optimizations
+# Force Wayland for NVIDIA (modern drivers support this)
+MOZ_ENABLE_WAYLAND=1
+# Enable hardware video acceleration
+LIBVA_DRIVER_NAME=nvidia
+NVD_BACKEND=direct
+# Vulkan ICD
+VK_DRIVER_FILES=/usr/share/vulkan/icd.d/nvidia_icd.json
+# Fix for some Proton games
+PROTON_ENABLE_NVAPI=1
+DXVK_ENABLE_NVAPI=1
+EOF
+    
+    echo "[Zenova GPU] NVIDIA setup complete."
+    echo "[Zenova GPU] Use 'nvidia-settings' for the NVIDIA Control Panel."
+    echo "[Zenova GPU] Use 'nvidia-smi' for GPU monitoring."
+}
+
+setup_amd() {
+    echo "[Zenova GPU] Setting up AMD..."
+    
+    # Configure environment for AMD
+    mkdir -p "$HOME/.config/environment.d"
+    cat > "$HOME/.config/environment.d/zenova-amd.conf" << 'EOF'
+# Zenova OS — AMD Optimizations
+# Use RADV Vulkan driver (best for gaming)
+AMD_VULKAN_ICD=RADV
+VK_DRIVER_FILES=/usr/share/vulkan/icd.d/radeon_icd.x86_64.json
+# Enable hardware video acceleration
+LIBVA_DRIVER_NAME=radeonsi
+# Enable AMD P-State preferred core
+# AMD Anti-Lag (if supported by driver)
+RADV_PERFTEST=gpl
+EOF
+    
+    echo "[Zenova GPU] AMD setup complete."
+    echo "[Zenova GPU] Use 'corectrl' for the AMD GPU Control Panel."
+    echo "[Zenova GPU] Use 'radeontop' for GPU monitoring."
+}
+
+setup_intel() {
+    echo "[Zenova GPU] Setting up Intel..."
+    
+    mkdir -p "$HOME/.config/environment.d"
+    cat > "$HOME/.config/environment.d/zenova-intel.conf" << 'EOF'
+# Zenova OS — Intel GPU Optimizations
+LIBVA_DRIVER_NAME=iHD
+EOF
+    
+    echo "[Zenova GPU] Intel setup complete."
+}
+
+# ── Main ──
+GPU=$(detect_gpu)
+GPU_NAME=$(get_gpu_name)
+
+echo "══════════════════════════════════════"
+echo "  Zenova OS — GPU Setup"
+echo "  Detected: $GPU_NAME"
+echo "  Vendor: $GPU"
+echo "══════════════════════════════════════"
+
+case $GPU in
+    nvidia) setup_nvidia ;;
+    amd)    setup_amd ;;
+    intel)  setup_intel ;;
+    *)      echo "[Zenova GPU] No dedicated GPU detected or unsupported vendor." ;;
+esac
+
+# Save detection result
+mkdir -p "$HOME/.config/zenova"
+echo "$GPU" > "$HOME/.config/zenova/gpu-vendor"
+echo "$GPU_NAME" > "$HOME/.config/zenova/gpu-name"
+
+echo "[Zenova GPU] Configuration saved to ~/.config/zenova/"

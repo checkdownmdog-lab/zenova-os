@@ -1,0 +1,15 @@
+[Unit]
+Description=Zenova OS First Boot Setup
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=!/var/lib/zenova/.firstboot-done
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/zenova-firstboot
+RemainAfterExit=yes
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

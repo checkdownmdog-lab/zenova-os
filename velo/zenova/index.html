@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zenova OS — Gaming Without Limits</title>
+    <meta name="description" content="Zenova OS - A premium gaming Linux distribution built for performance and style.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- ═══════════════ REGISTRATION SCREEN ═══════════════ -->
+    <div id="registration-screen">
+        <div class="reg-bg"></div>
+        <div class="reg-container" style="position: relative; z-index: 2; width: 560px; background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center;">
+            <div style="font-size: 32px; font-weight: 800; margin-bottom: 20px; background: linear-gradient(135deg, var(--accent), var(--cyan)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 2px;">ZENOVA OS</div>
+            <h2 style="font-size: 22px; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); text-align: center;">Initial Setup & License</h2>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 30px; text-align: center;">Create your root account to begin using Zenova.</p>
+            
+            <form id="reg-form" style="width: 100%; display: flex; flex-direction: column; gap: 16px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Full Name</label>
+                        <input type="text" id="reg-name" placeholder="John Doe" required style="width: 100%; padding: 12px 16px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--text-primary); font-size: 14px; outline: none;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Email Address</label>
+                        <input type="email" id="reg-email" placeholder="gamer@zenova.os" required style="width: 100%; padding: 12px 16px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--text-primary); font-size: 14px; outline: none;">
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Username</label>
+                        <input type="text" id="reg-username" placeholder="gamer" required style="width: 100%; padding: 12px 16px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--text-primary); font-size: 14px; outline: none;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">PC Name</label>
+                        <input type="text" id="reg-pcname" placeholder="zenova-pc" required style="width: 100%; padding: 12px 16px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--text-primary); font-size: 14px; outline: none;">
+                    </div>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Password</label>
+                    <input type="password" id="reg-password" placeholder="••••••••" required style="width: 100%; padding: 12px 16px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--text-primary); font-size: 14px; outline: none;">
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Phone Number <span style="font-weight: 400; text-transform: none; color: var(--text-muted);">(Optional)</span></label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="tel" id="reg-phone" placeholder="+1 (555) 000-0000" style="flex: 1; padding: 12px 16px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--text-primary); font-size: 14px; outline: none;">
+                        <button type="button" id="reg-send-code" style="padding: 0 16px; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,0.06); color: var(--text-primary); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;">Send Code</button>
+                    </div>
+                </div>
+
+                <div id="reg-code-wrap" style="display: none; flex-direction: column; gap: 6px; animation: fadeIn 0.3s ease;">
+                    <label style="font-size: 12px; font-weight: 600; color: var(--green); text-transform: uppercase; letter-spacing: 0.5px;">Verification Code</label>
+                    <input type="text" id="reg-code" placeholder="Enter 6-digit code" style="width: 100%; padding: 12px 16px; border-radius: 8px; background: rgba(34,197,94,0.05); border: 1px solid var(--green); color: var(--text-primary); font-size: 14px; outline: none;">
+                </div>
+                
+                <div style="margin-top: 10px;">
+                    <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                        <input type="checkbox" id="reg-agree" required style="margin-top: 4px; width: 18px; height: 18px; accent-color: var(--accent);">
+                        <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.4;">
+                            I agree to the Zenova OS Open Source License Agreement, EULA, and privacy terms.
+                        </div>
+                    </label>
+                </div>
+
+                <button type="submit" style="width: 100%; margin-top: 20px; padding: 14px; border-radius: 8px; border: none; background: var(--accent); color: white; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.3s ease;">Create System Account</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══════════════ LOCK SCREEN ═══════════════ -->
+    <div id="lock-screen" class="hidden">
+        <div class="lock-bg">
+            <div class="lock-particles" id="lock-particles"></div>
+        </div>
+        <div class="lock-content">
+            <div class="lock-time" id="lock-time">20:05</div>
+            <div class="lock-date" id="lock-date">Friday, March 13</div>
+            <div class="lock-spacer"></div>
+            <div class="lock-avatar">
+                <div class="avatar-ring">
+                    <div class="avatar-circle">
+                        <span class="material-symbols-rounded">person</span>
+                    </div>
+                </div>
+                <div class="lock-username">gamer</div>
+            </div>
+            <div class="lock-password-wrap">
+                <div class="lock-input-container">
+                    <span class="material-symbols-rounded lock-input-icon">lock</span>
+                    <input type="password" placeholder="Password" id="lock-input" autocomplete="off">
+                    <button class="lock-submit-btn" id="lock-submit">
+                        <span class="material-symbols-rounded">arrow_forward</span>
+                    </button>
+                </div>
+            </div>
+            <div class="lock-hint">Press Enter or click arrow to unlock</div>
+        </div>
+        <div class="lock-bottom">
+            <div class="lock-bottom-left">
+                <span class="material-symbols-rounded">wifi</span>
+                <span class="material-symbols-rounded">battery_full</span>
+            </div>
+            <div class="lock-bottom-right">
+                <span class="material-symbols-rounded" id="lock-power">power_settings_new</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════ DESKTOP ═══════════════ -->
+    <div id="desktop" class="hidden">
+        <!-- Welcome Wizard Overlay -->
+        <div id="welcome-wizard" class="hidden">
+            <div class="wizard-window">
+                <div class="wizard-header">
+                    <span class="material-symbols-rounded">waving_hand</span>
+                    <h2>Welcome to Zenova OS</h2>
+                    <span class="wizard-close material-symbols-rounded" id="wizard-close">close</span>
+                </div>
+                <div class="wizard-body">
+                    <div class="wizard-step active" id="wizard-step-1">
+                        <h3>Gaming Without Limits</h3>
+                        <p>Let's personalize your system in just a few steps. This will only take a minute!</p>
+                        <div class="wizard-features">
+                            <div class="w-feature"><span class="material-symbols-rounded">palette</span> Choose your theme</div>
+                            <div class="w-feature"><span class="material-symbols-rounded">apps</span> Pick apps to install</div>
+                            <div class="w-feature"><span class="material-symbols-rounded">sports_esports</span> Configure gaming settings</div>
+                            <div class="w-feature"><span class="material-symbols-rounded">memory</span> Set up your GPU layout</div>
+                        </div>
+                    </div>
+                    <div class="wizard-step hidden" id="wizard-step-2">
+                        <h3>Pick an Accent Color</h3>
+                        <p>This color will flow throughout your whole entire Zenova OS experience.</p>
+                        <div class="color-swatches w-colors">
+                            <div class="color-swatch active" style="background:#7c3aed" data-color="purple"></div>
+                            <div class="color-swatch" style="background:#3b82f6" data-color="blue"></div>
+                            <div class="color-swatch" style="background:#06b6d4" data-color="cyan"></div>
+                            <div class="color-swatch" style="background:#10b981" data-color="green"></div>
+                            <div class="color-swatch" style="background:#f97316" data-color="orange"></div>
+                            <div class="color-swatch" style="background:#ec4899" data-color="pink"></div>
+                            <div class="color-swatch" style="background:#ef4444" data-color="red"></div>
+                        </div>
+                    </div>
+                    <div class="wizard-step hidden" id="wizard-step-3">
+                        <h3>Select Apps to Install</h3>
+                        <p>We've already picked the essentials. What else do you want?</p>
+                        <div class="w-apps-grid">
+                            <label class="w-app-toggle">
+                                <input type="checkbox" checked>
+                                <span class="w-app-icon brave">B</span>
+                                <div class="w-app-info"><div class="wa-title">Brave</div><div class="wa-desc">Web Browser</div></div>
+                            </label>
+                            <label class="w-app-toggle">
+                                <input type="checkbox" checked>
+                                <span class="w-app-icon discord"><span class="material-symbols-rounded">forum</span></span>
+                                <div class="w-app-info"><div class="wa-title">Discord</div><div class="wa-desc">Voice & Chat</div></div>
+                            </label>
+                            <label class="w-app-toggle">
+                                <input type="checkbox">
+                                <span class="w-app-icon obs"><span class="material-symbols-rounded">videocam</span></span>
+                                <div class="w-app-info"><div class="wa-title">OBS Studio</div><div class="wa-desc">Streaming</div></div>
+                            </label>
+                            <label class="w-app-toggle">
+                                <input type="checkbox" checked>
+                                <span class="w-app-icon steam"><span class="material-symbols-rounded">sports_esports</span></span>
+                                <div class="w-app-info"><div class="wa-title">Steam</div><div class="wa-desc">Gaming Platform</div></div>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="wizard-step hidden" id="wizard-step-m">
+                        <h3>GPU Detected: NVIDIA RTX</h3>
+                        <p>Zenova will automatically configure:</p>
+                        <ul class="w-gpu-features">
+                            <li><span class="material-symbols-rounded">check</span> NVIDIA Native Drivers</li>
+                            <li><span class="material-symbols-rounded">check</span> Vulkan ICD Integration</li>
+                            <li><span class="material-symbols-rounded">check</span> Wayland Experimental Fixes</li>
+                        </ul>
+                    </div>
+                    <div class="wizard-step hidden" id="wizard-step-4">
+                        <h3 style="color:var(--green)">✅ All Set!</h3>
+                        <p>Your Zenova OS environment is perfectly optimized and ready.</p>
+                        <div class="w-final-features">
+                            <div class="w-feature"><span class="material-symbols-rounded">speed</span> Performance Mode Active</div>
+                            <div class="w-feature"><span class="material-symbols-rounded">volume_up</span> Low Latency Audio Enabled</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="wizard-footer">
+                    <div class="wizard-dots">
+                        <div class="w-dot active"></div>
+                        <div class="w-dot"></div>
+                        <div class="w-dot"></div>
+                    </div>
+                    <button class="wizard-btn primary" id="wizard-next">Let's Go</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Panel -->
+        <div id="top-panel">
+            <div class="panel-left">
+                <button class="activities-btn" id="activities-btn">
+                    <span class="material-symbols-rounded">grid_view</span>
+                    Activities
+                </button>
+            </div>
+            <div class="panel-center">
+                <span class="panel-clock" id="panel-clock">Fri 20:05</span>
+            </div>
+            <div class="panel-right">
+                <div class="system-tray">
+                    <span class="material-symbols-rounded tray-icon" title="Network">wifi</span>
+                    <span class="material-symbols-rounded tray-icon" title="Volume">volume_up</span>
+                    <span class="material-symbols-rounded tray-icon" title="Battery">battery_full</span>
+                    <button class="power-menu-btn" id="power-menu-btn">
+                        <span class="material-symbols-rounded">power_settings_new</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Desktop Wallpaper -->
+        <div id="desktop-wallpaper"></div>
+
+        <!-- Desktop Icons -->
+        <div id="desktop-icons">
+            <div class="desktop-icon" data-app="files" id="desktop-icon-files">
+                <div class="desktop-icon-img">
+                    <span class="material-symbols-rounded">folder</span>
+                </div>
+                <span class="desktop-icon-label">Files</span>
+            </div>
+            <div class="desktop-icon" data-app="terminal" id="desktop-icon-terminal">
+                <div class="desktop-icon-img">
+                    <span class="material-symbols-rounded">terminal</span>
+                </div>
+                <span class="desktop-icon-label">Terminal</span>
+            </div>
+            <div class="desktop-icon" data-app="brave" id="desktop-icon-brave">
+                <div class="desktop-icon-img brave-desk-icon">B</div>
+                <span class="desktop-icon-label">Brave</span>
+            </div>
+        </div>
+
+        <!-- Windows Container -->
+        <div id="windows-container"></div>
+
+        <!-- Activities Overview -->
+        <div id="activities-overlay" class="hidden">
+            <div class="activities-search">
+                <span class="material-symbols-rounded">search</span>
+                <input type="text" placeholder="Search applications..." id="activities-search-input">
+            </div>
+            <div class="activities-grid" id="activities-grid"></div>
+        </div>
+
+        <!-- Right-Click Context Menu -->
+        <div id="context-menu" class="hidden">
+            <div class="context-item" data-action="change-wallpaper">
+                <span class="material-symbols-rounded">wallpaper</span> Change Wallpaper
+            </div>
+            <div class="context-item" data-action="settings">
+                <span class="material-symbols-rounded">settings</span> Settings
+            </div>
+            <div class="context-item" data-action="terminal">
+                <span class="material-symbols-rounded">terminal</span> Open Terminal
+            </div>
+            <div class="context-divider"></div>
+            <div class="context-item" data-action="about">
+                <span class="material-symbols-rounded">info</span> About Zenova
+            </div>
+        </div>
+
+        <!-- Dock -->
+        <div id="dock">
+            <div class="dock-container" id="dock-container">
+                <div class="dock-item" data-app="brave" data-tooltip="Brave Browser" id="dock-brave">
+                    <div class="dock-icon brave-icon">
+                        <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M12 2L3 7v7c0 5 4 8.5 9 10 5-1.5 9-5 9-10V7l-9-5zm0 2.2L19 8.5v5.8c0 3.9-3.1 6.8-7 8.1-3.9-1.3-7-4.2-7-8.1V8.5L12 4.2z"/><path fill="currentColor" d="M12 6l-1.5 3H8l2.5 2-1 3.5L12 13l2.5 1.5-1-3.5L16 9h-2.5z"/></svg>
+                    </div>
+                    <div class="dock-indicator"></div>
+                </div>
+                <div class="dock-item" data-app="files" data-tooltip="Files" id="dock-files">
+                    <div class="dock-icon files-icon">
+                        <span class="material-symbols-rounded">folder</span>
+                    </div>
+                    <div class="dock-indicator"></div>
+                </div>
+                <div class="dock-divider"></div>
+                <div class="dock-item" data-app="steam" data-tooltip="Steam" id="dock-steam">
+                    <div class="dock-icon steam-icon">
+                        <svg viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M12 2a10 10 0 0 0-9.96 9.04l5.35 2.21a2.83 2.83 0 0 1 1.61-.5h.07l2.39-3.46v-.05a3.77 3.77 0 1 1 3.77 3.77h-.09l-3.41 2.43c0 .02 0 .04.01.06a2.84 2.84 0 0 1-2.84 2.84 2.85 2.85 0 0 1-2.76-2.18L2.6 15.2A10 10 0 1 0 12 2z"/></svg>
+                    </div>
+                    <div class="dock-indicator"></div>
+                </div>
+                <div class="dock-item" data-app="discord" data-tooltip="Discord" id="dock-discord">
+                    <div class="dock-icon discord-icon">
+                        <svg viewBox="0 0 24 24" width="26" height="26"><path fill="currentColor" d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09c-.01-.02-.04-.03-.07-.03c-1.5.26-2.93.71-4.27 1.33c-.01 0-.02.01-.03.02c-2.72 4.07-3.47 8.03-3.1 11.95c0 .02.01.04.03.05c1.8 1.32 3.53 2.12 5.24 2.65c.03.01.06 0 .07-.02c.4-.55.76-1.13 1.07-1.74c.02-.04 0-.08-.04-.09c-.57-.22-1.11-.48-1.64-.78c-.04-.02-.04-.08-.01-.11c.11-.08.22-.17.33-.25c.02-.02.05-.02.07-.01c3.44 1.57 7.15 1.57 10.55 0c.02-.01.05-.01.07.01c.11.09.22.17.33.26c.04.03.04.09-.01.11c-.52.31-1.07.56-1.64.78c-.04.01-.05.06-.04.09c.32.61.68 1.19 1.07 1.74c.03.01.06.02.09.01c1.72-.53 3.45-1.33 5.25-2.65c.02-.01.03-.03.03-.05c.44-4.53-.73-8.46-3.1-11.95c-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.83 2.12-1.89 2.12z"/></svg>
+                    </div>
+                    <div class="dock-indicator"></div>
+                </div>
+                <div class="dock-item" data-app="store" data-tooltip="Zenova Store" id="dock-store">
+                    <div class="dock-icon store-icon">
+                        <span class="material-symbols-rounded">storefront</span>
+                    </div>
+                    <div class="dock-indicator"></div>
+                </div>
+                <div class="dock-divider"></div>
+                <div class="dock-item" data-app="terminal" data-tooltip="Terminal" id="dock-terminal">
+                    <div class="dock-icon terminal-icon">
+                        <span class="material-symbols-rounded">terminal</span>
+                    </div>
+                    <div class="dock-indicator"></div>
+                </div>
+                <div class="dock-item" data-app="settings" data-tooltip="Settings" id="dock-settings">
+                    <div class="dock-icon settings-icon">
+                        <span class="material-symbols-rounded">settings</span>
+                    </div>
+                    <div class="dock-indicator"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Toast -->
+        <div id="notification-container"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

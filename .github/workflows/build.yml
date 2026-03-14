@@ -1,0 +1,141 @@
+name: Build Zenova OS
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+  pull_request:
+    branches: [main]
+  schedule:
+    # Rebuild weekly to pull in Bazzite updates
+    - cron: '0 6 * * 0'
+  workflow_dispatch:
+    inputs:
+      build_iso:
+        description: 'Also build bootable ISO'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  IMAGE_NAME: zenova-os
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+  FEDORA_MAJOR_VERSION: 41
+
+jobs:
+  # ══════════════════════════════════════════════════
+  #  Step 1: Build the container image
+  # ══════════════════════════════════════════════════
+  build-image:
+    name: Build Zenova OS Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=sha
+            type=raw,value=${{ env.FEDORA_MAJOR_VERSION }}
+
+      - name: Build and push image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Containerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            FEDORA_MAJOR_VERSION=${{ env.FEDORA_MAJOR_VERSION }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Echo image info
+        run: |
+          echo "Image built: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}"
+          echo "Digest: ${{ steps.build.outputs.digest }}"
+
+  # ══════════════════════════════════════════════════
+  #  Step 2: Build bootable ISO
+  # ══════════════════════════════════════════════════
+  build-iso:
+    name: Build Zenova OS ISO
+    needs: build-image
+    if: github.event_name != 'pull_request' && (github.event.inputs.build_iso == 'true' || github.event_name == 'push' || github.event_name == 'schedule')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build ISO
+        uses: jasonn3/build-container-installer@main
+        id: build-iso
+        with:
+          arch: x86_64
+          image_name: ${{ env.IMAGE_NAME }}
+          image_repo: ${{ env.IMAGE_REGISTRY }}
+          image_tag: latest
+          variant: Kinoite  # KDE variant base
+          iso_name: ZenovaOS-1.0-x86_64.iso
+          # Enable secure boot support
+          secure_boot_key_url: https://github.com/ublue-os/akmods/raw/main/certs/public_key.der
+          enrollment_password: universalblue
+
+      - name: Upload ISO as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ZenovaOS-ISO
+          path: ${{ steps.build-iso.outputs.iso_path }}/${{ steps.build-iso.outputs.iso_name }}
+          retention-days: 14
+          compression-level: 0
+
+      - name: Create Release (on tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.build-iso.outputs.iso_path }}/${{ steps.build-iso.outputs.iso_name }}
+          generate_release_notes: true
+          body: |
+            ## Zenova OS — Gaming Without Limits
+            
+            ### What's included:
+            - 🎮 Steam, Lutris, ProtonUp pre-installed
+            - 🌐 Brave Browser
+            - 💬 Discord (auto-installs on first boot)
+            - 🎨 Custom Zenova dark theme with KDE Plasma
+            - ⚡ Maximum Performance Kernel optimizations
+            - 🔒 Secure Boot supported
+            
+            ### Installation:
+            1. Flash the ISO to a USB drive (use Ventoy, Rufus, or `dd`)
+            2. Boot from USB
+            3. Follow the Anaconda installer
+            4. Reboot and enjoy!

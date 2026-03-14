@@ -1,0 +1,302 @@
+#!/usr/bin/env bash
+# ═══════════════════════════════════════════════════════════════
+#  Zenova OS — Welcome Wizard
+#  Runs on the FIRST login after installation
+#  Guides the user through initial setup & personalization
+# ═══════════════════════════════════════════════════════════════
+set -euo pipefail
+
+MARKER="$HOME/.config/zenova/.welcome-done"
+
+# Exit if already completed
+if [ -f "$MARKER" ]; then
+    exit 0
+fi
+
+mkdir -p "$HOME/.config/zenova"
+
+# ── Helper Functions ──
+notify() {
+    notify-send -a "Zenova OS" -i "/usr/share/zenova/zenova-icon.png" "$1" "$2" 2>/dev/null || true
+}
+
+log() {
+    echo "[Zenova Setup] $1"
+}
+
+# ══════════════════════════════════════════════════════════════
+#  STEP 1: Welcome Screen
+# ══════════════════════════════════════════════════════════════
+kdialog --title "Welcome to Zenova OS" \
+    --icon "/usr/share/zenova/zenova-icon.png" \
+    --msgbox "$(cat <<'EOF'
+<h2 style='color: #a78bfa;'>Welcome to Zenova OS</h2>
+<p><b>Gaming Without Limits</b></p>
+<br>
+<p>Let's personalize your system in just a few steps:</p>
+<ul>
+  <li>🎨 Choose your theme & accent color</li>
+  <li>📦 Pick apps to install</li>
+  <li>🎮 Configure gaming settings</li>
+  <li>🖥️ Set up your GPU</li>
+</ul>
+<br>
+<p><i>This will only take a minute!</i></p>
+EOF
+)" 2>/dev/null
+
+# ══════════════════════════════════════════════════════════════
+#  STEP 2: Accent Color Selection
+# ══════════════════════════════════════════════════════════════
+ACCENT=$(kdialog --title "Zenova Setup — Accent Color" \
+    --menu "Choose your system accent color:" \
+    "purple"  "💜 Violet (Default)" \
+    "blue"    "💙 Blue" \
+    "cyan"    "🩵 Cyan" \
+    "green"   "💚 Emerald" \
+    "orange"  "🧡 Orange" \
+    "pink"    "💗 Pink" \
+    "red"     "❤️ Red" \
+    "teal"    "🩵 Teal" \
+    2>/dev/null) || ACCENT="purple"
+
+log "Accent color: $ACCENT"
+
+# Apply accent color to KDE
+case $ACCENT in
+    purple) COLOR="124,58,237" ;;
+    blue)   COLOR="37,99,235" ;;
+    cyan)   COLOR="8,145,178" ;;
+    green)  COLOR="5,150,105" ;;
+    orange) COLOR="234,88,12" ;;
+    pink)   COLOR="219,39,119" ;;
+    red)    COLOR="220,38,38" ;;
+    teal)   COLOR="13,148,136" ;;
+esac
+
+# Write accent to KDE settings
+kwriteconfig5 --file kdeglobals --group "Colors:Selection" --key "BackgroundNormal" "$COLOR" 2>/dev/null || true
+kwriteconfig5 --file kdeglobals --group "General" --key "AccentColor" "$COLOR" 2>/dev/null || true
+
+# ══════════════════════════════════════════════════════════════
+#  STEP 3: App Selection
+# ══════════════════════════════════════════════════════════════
+APPS=$(kdialog --title "Zenova Setup — Choose Your Apps" \
+    --checklist "Select apps to install (pre-checked = recommended):" \
+    "discord"      "💬 Discord — Voice & text chat"             on \
+    "spotify"      "🎵 Spotify — Music streaming"               on \
+    "obs"          "📹 OBS Studio — Streaming & recording"      on \
+    "heroic"       "⚔️ Heroic Launcher — Epic/GOG games"        on \
+    "protonup"     "🔧 ProtonUp-Qt — Manage Proton versions"    on \
+    "bottles"      "🍾 Bottles — Run Windows apps"              off \
+    "lutris"       "🎮 Lutris — Universal game launcher"        off \
+    "prism"        "⛏️ Prism Launcher — Minecraft"              off \
+    "retroarch"    "🕹️ RetroArch — Retro game emulator"         off \
+    "vscode"       "💻 VS Code — Code editor"                   off \
+    "vlc"          "🎬 VLC — Media player"                      on \
+    "gimp"         "🎨 GIMP — Image editor"                     off \
+    "blender"      "🧊 Blender — 3D creation"                   off \
+    "kdenlive"     "🎞️ Kdenlive — Video editor"                 off \
+    "telegram"     "✈️ Telegram — Messaging"                    off \
+    "signal"       "🔒 Signal — Encrypted messaging"            off \
+    "slack"        "💼 Slack — Team communication"               off \
+    "element"      "🌐 Element — Matrix messaging"              off \
+    "thunderbird"  "📧 Thunderbird — Email client"              off \
+    "obsidian"     "📝 Obsidian — Notes & knowledge base"       off \
+    "libreoffice"  "📄 LibreOffice — Office suite"              off \
+    "qbittorrent"  "📥 qBittorrent — Torrent client"            off \
+    "stremio"      "📺 Stremio — Media center"                  off \
+    "krita"        "🖌️ Krita — Digital painting"                off \
+    "inkscape"     "✒️ Inkscape — Vector graphics"              off \
+    "audacity"     "🎤 Audacity — Audio editor"                 off \
+    "flatseal"     "🛡️ Flatseal — Flatpak permissions"          on \
+    2>/dev/null) || APPS="discord spotify obs vlc flatseal heroic protonup"
+
+log "Selected apps: $APPS"
+
+# ══════════════════════════════════════════════════════════════
+#  STEP 4: Gaming Configuration
+# ══════════════════════════════════════════════════════════════
+GAMING=$(kdialog --title "Zenova Setup — Gaming" \
+    --checklist "Configure gaming features:" \
+    "corectrl"   "🎛️ CoreCtrl — GPU overclocking & fans"             on \
+    "proton"     "🍷 Proton Experimental — Latest Proton"             on \
+    2>/dev/null) || GAMING="corectrl proton"
+
+# ══════════════════════════════════════════════════════════════
+#  STEP 5: GPU Detection & Setup
+# ══════════════════════════════════════════════════════════════
+GPU_VENDOR="unknown"
+if lspci | grep -qi "nvidia"; then
+    GPU_VENDOR="nvidia"
+    GPU_NAME=$(lspci | grep -i "vga\|3d\|display" | grep -i nvidia | head -1 | sed 's/.*: //')
+    kdialog --title "Zenova Setup — GPU Detected" \
+        --msgbox "$(cat <<EOF
+<h3>🟢 NVIDIA GPU Detected</h3>
+<p><b>$GPU_NAME</b></p>
+<br>
+<p>Zenova will configure:</p>
+<ul>
+  <li>NVIDIA Settings (control panel)</li>
+  <li>NVIDIA driver (from Bazzite)</li>
+  <li>Vulkan support</li>
+  <li>NVENC hardware encoding</li>
+</ul>
+EOF
+)" 2>/dev/null || true
+
+elif lspci | grep -qi "amd\|radeon"; then
+    GPU_VENDOR="amd"
+    GPU_NAME=$(lspci | grep -i "vga\|3d\|display" | grep -i "amd\|radeon" | head -1 | sed 's/.*: //')
+    kdialog --title "Zenova Setup — GPU Detected" \
+        --msgbox "$(cat <<EOF
+<h3>🔴 AMD GPU Detected</h3>
+<p><b>$GPU_NAME</b></p>
+<br>
+<p>Zenova will configure:</p>
+<ul>
+  <li>CoreCtrl (AMD GPU control panel)</li>
+  <li>Mesa RADV Vulkan driver</li>
+  <li>VAAPI hardware encoding</li>
+  <li>AMD P-State performance</li>
+</ul>
+EOF
+)" 2>/dev/null || true
+
+elif lspci | grep -qi "intel"; then
+    GPU_VENDOR="intel"
+fi
+
+echo "$GPU_VENDOR" > "$HOME/.config/zenova/gpu-vendor"
+
+# ══════════════════════════════════════════════════════════════
+#  STEP 6: Shell Preference
+# ══════════════════════════════════════════════════════════════
+SHELL_CHOICE=$(kdialog --title "Zenova Setup — Default Shell" \
+    --menu "Choose your terminal shell:" \
+    "fish"  "🐟 Fish — Smart auto-completions (Recommended)" \
+    "zsh"   "🔮 Zsh — Power user shell" \
+    "bash"  "📟 Bash — Classic Linux shell" \
+    2>/dev/null) || SHELL_CHOICE="fish"
+
+case $SHELL_CHOICE in
+    fish) chsh -s /usr/bin/fish 2>/dev/null || true ;;
+    zsh)  chsh -s /usr/bin/zsh 2>/dev/null || true ;;
+    bash) chsh -s /bin/bash 2>/dev/null || true ;;
+esac
+
+# ══════════════════════════════════════════════════════════════
+#  STEP 7: Install Selected Apps
+# ══════════════════════════════════════════════════════════════
+
+# Map app names to Flatpak IDs
+declare -A FLATPAK_MAP=(
+    ["discord"]="com.discordapp.Discord"
+    ["spotify"]="com.spotify.Client"
+    ["obs"]="com.obsproject.Studio"
+    ["heroic"]="com.heroicgameslauncher.hgl"
+    ["protonup"]="net.davidotek.pupgui2"
+    ["bottles"]="com.usebottles.bottles"
+    ["lutris"]="net.lutris.Lutris"
+    ["prism"]="org.prismlauncher.PrismLauncher"
+    ["retroarch"]="org.libretro.RetroArch"
+    ["vscode"]="com.visualstudio.code"
+    ["vlc"]="org.videolan.VLC"
+    ["gimp"]="org.gimp.GIMP"
+    ["blender"]="org.blender.Blender"
+    ["kdenlive"]="org.kde.kdenlive"
+    ["telegram"]="org.telegram.desktop"
+    ["signal"]="org.signal.Signal"
+    ["slack"]="com.slack.Slack"
+    ["element"]="im.riot.Riot"
+    ["thunderbird"]="org.mozilla.Thunderbird"
+    ["obsidian"]="md.obsidian.Obsidian"
+    ["libreoffice"]="org.libreoffice.LibreOffice"
+    ["qbittorrent"]="org.qbittorrent.qBittorrent"
+    ["stremio"]="com.stremio.Stremio"
+    ["krita"]="org.kde.krita"
+    ["inkscape"]="org.inkscape.Inkscape"
+    ["audacity"]="org.audacityteam.Audacity"
+    ["flatseal"]="com.github.tchx84.Flatseal"
+)
+
+# Ensure Flathub is configured
+flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+
+TOTAL=0
+for app in $APPS; do
+    app_clean=$(echo "$app" | tr -d '"')
+    if [[ -n "${FLATPAK_MAP[$app_clean]+x}" ]]; then
+        TOTAL=$((TOTAL + 1))
+    fi
+done
+
+CURRENT=0
+DBUSREF=$(kdialog --title "Zenova Setup — Installing Apps" --progressbar "Preparing..." $TOTAL 2>/dev/null) || true
+
+for app in $APPS; do
+    app_clean=$(echo "$app" | tr -d '"')
+    if [[ -n "${FLATPAK_MAP[$app_clean]+x}" ]]; then
+        FLATPAK_ID="${FLATPAK_MAP[$app_clean]}"
+        log "Installing $app_clean ($FLATPAK_ID)..."
+        if [ -n "$DBUSREF" ]; then
+            qdbus6 $DBUSREF setLabelText "Installing $app_clean..." 2>/dev/null || \
+            qdbus $DBUSREF setLabelText "Installing $app_clean..." 2>/dev/null || true
+        fi
+        flatpak install -y --noninteractive --user flathub "$FLATPAK_ID" 2>/dev/null || {
+            log "Warning: Failed to install $app_clean"
+        }
+        CURRENT=$((CURRENT + 1))
+        if [ -n "$DBUSREF" ]; then
+            qdbus6 $DBUSREF Set "" value $CURRENT 2>/dev/null || \
+            qdbus $DBUSREF Set "" value $CURRENT 2>/dev/null || true
+        fi
+    fi
+done
+
+if [ -n "$DBUSREF" ]; then
+    qdbus6 $DBUSREF close 2>/dev/null || \
+    qdbus $DBUSREF close 2>/dev/null || true
+fi
+
+# ══════════════════════════════════════════════════════════════
+#  STEP 8: Apply GPU-specific Config
+# ══════════════════════════════════════════════════════════════
+if [ "$GPU_VENDOR" = "nvidia" ]; then
+    # Create NVIDIA Settings desktop shortcut
+    mkdir -p "$HOME/Desktop"
+    cp /usr/share/applications/nvidia-settings.desktop "$HOME/Desktop/" 2>/dev/null || true
+elif [ "$GPU_VENDOR" = "amd" ]; then
+    # Auto-start CoreCtrl
+    mkdir -p "$HOME/.config/autostart"
+    if [ -f /usr/share/applications/org.corectrl.CoreCtrl.desktop ]; then
+        cp /usr/share/applications/org.corectrl.CoreCtrl.desktop "$HOME/.config/autostart/" 2>/dev/null || true
+    fi
+fi
+
+# ══════════════════════════════════════════════════════════════
+#  STEP 9: Final Welcome
+# ══════════════════════════════════════════════════════════════
+kdialog --title "Zenova OS — Setup Complete!" \
+    --icon "/usr/share/zenova/zenova-icon.png" \
+    --msgbox "$(cat <<'EOF'
+<h2 style='color: #22c55e;'>✅ Setup Complete!</h2>
+<br>
+<p>Your Zenova OS is ready to game. Here are some tips:</p>
+<ul>
+  <li>🎮 <b>Steam</b> is in your dock — launch games with Proton</li>
+  <li>🛒 <b>Zenova Store</b> — find more apps anytime</li>
+  <li>⚙️ <b>System Settings</b> — customize everything (colors, fonts, panels, effects...)</li>
+  <li>🖥️ <b>Terminal</b> — try <code>fastfetch</code> to see your system info</li>
+</ul>
+<br>
+<p><i>Right-click the desktop to access wallpapers, widgets, and more.</i></p>
+<p><b>Happy gaming! 🎮</b></p>
+EOF
+)" 2>/dev/null
+
+# Mark setup as complete
+touch "$MARKER"
+notify "Setup Complete" "Zenova OS is ready to game! 🎮"
+
+log "Welcome wizard completed successfully."

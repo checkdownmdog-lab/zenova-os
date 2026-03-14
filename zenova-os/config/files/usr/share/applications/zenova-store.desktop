@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Zenova Store
+GenericName=Software Center
+Comment=Discover and install apps for Zenova OS
+Exec=plasma-discover --mode update %U
+Icon=zenova-store
+Terminal=false
+Categories=System;PackageManager;
+Keywords=apps;store;install;flatpak;software;download;
+X-KDE-Protocols=appstream
+MimeType=application/x-xdg-protocol-handler;
+StartupNotify=true

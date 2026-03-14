@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# ═══════════════════════════════════════════════════════════════
+#  Zenova OS — First Boot Setup (System-Level)
+#  Ensures Flathub is enabled and core flatpaks are available
+#  Individual app installation happens via the Welcome Wizard
+# ═══════════════════════════════════════════════════════════════
+set -euo pipefail
+
+MARKER="/var/lib/zenova/.firstboot-done"
+
+if [ -f "$MARKER" ]; then
+    echo "[Zenova] First boot setup already completed."
+    exit 0
+fi
+
+echo "══════════════════════════════════════"
+echo "  Zenova OS — First Boot Setup"
+echo "══════════════════════════════════════"
+
+# ── Configure Flathub as system-wide remote ──
+echo "[Zenova] Enabling Flathub..."
+flatpak remote-add --system --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+flatpak remote-modify --system --enable flathub
+
+# ── Pre-install critical Flatpaks that the welcome wizard expects ──
+# Only install the bare minimum here — the wizard handles the rest
+ESSENTIAL_FLATPAKS=(
+    "com.github.tchx84.Flatseal"    # Flatpak permissions manager
+)
+
+for app in "${ESSENTIAL_FLATPAKS[@]}"; do
+    echo "[Zenova] Pre-installing $app..."
+    flatpak install -y --noninteractive --system flathub "$app" 2>/dev/null || true
+done
+
+# ── Mark complete ──
+mkdir -p /var/lib/zenova
+touch "$MARKER"
+
+echo "[Zenova] First boot setup complete."
+echo "[Zenova] The Welcome Wizard will handle app installation on first login."

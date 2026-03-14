@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Zenova Welcome Wizard
+Comment=Initial Setup for Zenova OS gaming enhancements, app selection, and theming.
+Exec=/usr/libexec/zenova-welcome
+Icon=zenova-logo
+Terminal=false
+Type=Application
+Categories=System;Setup;
+StartupNotify=true
+NoDisplay=true
+X-KDE-autostart-phase=1
